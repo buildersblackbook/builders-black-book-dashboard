@@ -27,22 +27,11 @@ def get_supabase_client() -> Client:
     except Exception as e:
         return None
 
-# ================== LOGO HEADER ==================
-col_logo, col_title = st.columns([1.2, 4])
-
-with col_logo:
-    logo_path = ASSETS_PATH / "logo.svg"
-    if logo_path.exists():
-        st.image(str(logo_path), width=240)
-    else:
-        st.image("https://via.placeholder.com/240x70/1a365d/ffffff?text=BB", width=240)
-
-with col_title:
-    st.title("Builder's Black Book")
-    st.caption("Nashville Residential Permit Intelligence")
+# ================== HEADER ==================
+st.title("Builder's Black Book")
+st.caption("Nashville Residential Permit Intelligence")
 
 st.markdown("---")
-
 # Load permit data from local SQLite
 @st.cache_data
 def load_permit_data():
