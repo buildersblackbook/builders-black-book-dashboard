@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from supabase import create_client, Client
 
 # ================== PATHS ==================
-DB_PATH = Path("data/permits.db")
+DB_PATH = Path("permits.db")
 ASSETS_PATH = Path("assets")
 SUBS_CSV = Path("data/subcontractors.csv")
 
