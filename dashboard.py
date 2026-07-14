@@ -256,84 +256,43 @@ with tab3:
     st.subheader("🔧 Approved Subcontractors")
     st.caption("Curated list of quality subcontractors in the Nashville area")
 
-    # ========== ADD NEW SUBCONTRACTOR MANUALLY ==========
-    with st.expander("➕ Add New Subcontractor", expanded=False):
-        with st.form("add_sub_form", clear_on_submit=True):
-            col1, col2 = st.columns(2)
+    # Load approved subcontractors from Supabase
+    @st.cache_data(ttl=60)
+    def load_approved_subs():
+        try:
+            supabase = get_supabase_client()
+            if supabase is None:
+                return pd.DataFrame()
+            response = supabase.table("approved_subcontractors").select("*").order("approved_at", desc=True).execute()
+            return pd.DataFrame(response.data)
+        except Exception as e:
+            st.error(f"Could not load approved subcontractors: {e}")
+            return pd.DataFrame()
 
-            with col1:
-                company = st.text_input("Company Name *")
-                primary_trade = st.text_input("Primary Trade *")
-                other_trades = st.text_input("Other Trades")
-                years = st.number_input("Years in Business", min_value=0, value=5)
-                phone = st.text_input("Phone")
+    approved_df = load_approved_subs()
 
-            with col2:
-                email = st.text_input("Email")
-                website = st.text_input("Website")
-                areas = st.text_input("Areas Served (ZIPs)")
-                company_size = st.selectbox("Company Size", ["1-5", "6-10", "11-20", "21-50+"], index=0)
-                recommended = st.selectbox("Recommended?", ["Yes", "No"], index=0)
-                notes = st.text_area("Notes")
-
-            if st.form_submit_button("Add Subcontractor", type="primary"):
-                if company and primary_trade:
-                    new_row = {
-                        "Company Name": company,
-                        "Primary Trade": primary_trade,
-                        "Other Trades": other_trades,
-                        "Years in Business": years,
-                        "Phone": phone,
-                        "Email": email,
-                        "Website": website,
-                        "Areas Served": areas,
-                        "Company Size": company_size,
-                        "Recommended": recommended,
-                        "Notes": notes,
-                        "Date Added": datetime.now().strftime("%Y-%m-%d")
-                    }
-                    if SUBS_CSV.exists():
-                        subs_df = pd.read_csv(SUBS_CSV)
-                    else:
-                        subs_df = pd.DataFrame()
-                    subs_df = pd.concat([subs_df, pd.DataFrame([new_row])], ignore_index=True)
-                    subs_df.to_csv(SUBS_CSV, index=False)
-                    st.success(f"✅ {company} added!")
-                    st.rerun()
-                else:
-                    st.error("Company Name and Primary Trade are required.")
-
-    st.divider()
-
-    # ========== APPROVED SUBCONTRACTORS ==========
-    st.subheader("Your Approved List")
-
-    if SUBS_CSV.exists():
-        subs_df = pd.read_csv(SUBS_CSV)
+    if approved_df.empty:
+        st.info("No approved subcontractors yet.")
     else:
-        subs_df = pd.DataFrame()
+        # Simple search
+        search = st.text_input("🔍 Search", placeholder="Search by company or trade...")
 
-    search = st.text_input("🔍 Search Approved Subs", placeholder="Search by name or trade...")
+        display_df = approved_df.copy()
+        if search:
+            display_df = display_df[
+                display_df.astype(str).apply(
+                    lambda x: x.str.contains(search, case=False, na=False)
+                ).any(axis=1)
+            ]
 
-    display_df = subs_df.copy()
-    if search and not display_df.empty:
-        display_df = display_df[
-            display_df.astype(str).apply(
-                lambda x: x.str.contains(search, case=False, na=False)
-            ).any(axis=1)
-        ]
+        # Choose which columns to show publicly
+        public_cols = ["company_name", "primary_trade", "areas_served", "phone", "email", "website"]
+        available_cols = [c for c in public_cols if c in display_df.columns]
 
-    if display_df.empty:
-        st.info("No approved subcontractors yet. Add your first one above.")
-    else:
         st.dataframe(
-            display_df,
-            width='stretch',
+            display_df[available_cols],
+            use_container_width=True,
             hide_index=True
         )
 
-        if st.button("Export Approved Subcontractors"):
-            csv = display_df.to_csv(index=False).encode("utf-8")
-            st.download_button("Download CSV", csv, "approved_subcontractors.csv", "text/csv")
-
-st.caption("Data source: Metro Nashville Open Data | Work in Progress")
+        st.caption(f"Showing {len(display_df)} approved subcontractors")
