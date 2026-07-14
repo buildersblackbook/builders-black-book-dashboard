@@ -264,11 +264,11 @@ with tab2:
 
 # ================== TAB 3: SUB-CONTRACTORS ==================
 with tab3:
-    st.subheader("🔧 Sub-Contractors")
-    st.caption("Your private network of subcontractors")
+    st.subheader("🔧 Approved Subcontractors")
+    st.caption("Curated list of quality subcontractors in the Nashville area")
 
     # ========== ADD NEW SUBCONTRACTOR MANUALLY ==========
-    with st.expander("➕ Add New Subcontractor Manually", expanded=False):
+    with st.expander("➕ Add New Subcontractor", expanded=False):
         with st.form("add_sub_form", clear_on_submit=True):
             col1, col2 = st.columns(2)
 
@@ -316,56 +316,8 @@ with tab3:
 
     st.divider()
 
-    # ========== PENDING SUBMISSIONS FROM SUPABASE ==========
-    st.subheader("📥 Pending Form Submissions")
-    st.caption("New subcontractors who filled out the online form — Source of Truth: Supabase")
-
-    supabase = get_supabase_client()
-
-    if supabase:
-        try:
-            response = supabase.table("subcontractor_submissions").select("*").order("created_at", desc=True).execute()
-            pending_df = pd.DataFrame(response.data)
-
-            if pending_df.empty:
-                st.info("No pending submissions yet. Share your form link to start collecting applications.")
-            else:
-                st.success(f"You have **{len(pending_df)}** pending submission(s).")
-
-                display_cols = ["created_at", "company_name", "primary_trade", "phone", "email", 
-                               "areas_served", "licensed_insured", "contact_name"]
-                available_cols = [col for col in display_cols if col in pending_df.columns]
-
-                st.dataframe(
-                    pending_df[available_cols],
-                    width='stretch',
-                    hide_index=True,
-                    column_config={
-                        "created_at": st.column_config.DatetimeColumn("Submitted", format="YYYY-MM-DD HH:mm"),
-                    }
-                )
-
-                csv = pending_df.to_csv(index=False).encode("utf-8")
-                st.download_button(
-                    label="📥 Download All Pending Submissions (CSV)",
-                    data=csv,
-                    file_name=f"pending_submissions_{datetime.now().strftime('%Y-%m-%d')}.csv",
-                    mime="text/csv",
-                    width='stretch'
-                )
-
-                st.caption("Data is pulled live from Supabase. This is your single source of truth.")
-
-        except Exception as e:
-            st.error("❌ Failed to load submissions from Supabase.")
-            st.error(str(e))
-    else:
-        st.error("❌ Could not connect to Supabase. Check your secrets.toml file.")
-
-    st.divider()
-
-    # ========== YOUR APPROVED SUBCONTRACTORS (Local CSV) ==========
-    st.subheader("✅ Your Approved Subcontractors (Manual List)")
+    # ========== APPROVED SUBCONTRACTORS ==========
+    st.subheader("Your Approved List")
 
     if SUBS_CSV.exists():
         subs_df = pd.read_csv(SUBS_CSV)
@@ -383,7 +335,7 @@ with tab3:
         ]
 
     if display_df.empty:
-        st.info("No approved subcontractors yet.")
+        st.info("No approved subcontractors yet. Add your first one above.")
     else:
         st.dataframe(
             display_df,
@@ -395,4 +347,4 @@ with tab3:
             csv = display_df.to_csv(index=False).encode("utf-8")
             st.download_button("Download CSV", csv, "approved_subcontractors.csv", "text/csv")
 
-st.caption("Data source: Metro Nashville Open Data + Supabase | Your Private Network")
+st.caption("Data source: Metro Nashville Open Data | Work in Progress")
