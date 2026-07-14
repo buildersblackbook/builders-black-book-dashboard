@@ -255,6 +255,7 @@ with tab2:
 with tab3:
     st.subheader("🔧 Approved Subcontractors")
     st.caption("Curated list of quality subcontractors in the Nashville area")
+    st.info("Submissions are reviewed and updated daily.")
 
     # Load approved subcontractors from Supabase
     @st.cache_data(ttl=60)
