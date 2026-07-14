@@ -31,6 +31,17 @@ def get_supabase_client() -> Client:
 st.title("Builder's Black Book")
 st.caption("Nashville Residential Permit Intelligence")
 
+st.markdown(
+    """
+    <div style="background-color: #f0f7ff; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #1a365d; margin-bottom: 20px;">
+        <strong>Looking to join as a Subcontractor?</strong><br>
+        Apply at <a href="https://blackbook.cuttingedgetn.com" target="_blank">blackbook.cuttingedgetn.com</a><br>
+        <em>English & Spanish welcome · Se aceptan solicitudes en inglés y español</em>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 st.markdown("---")
 # Load permit data from local SQLite
 @st.cache_data
@@ -255,8 +266,17 @@ with tab2:
 with tab3:
     st.subheader("🔧 Approved Subcontractors")
     st.caption("Curated list of quality subcontractors in the Nashville area")
-    st.info("Submissions are reviewed and updated daily.")
 
+    st.markdown(
+        """
+        <div style="background-color: #f8fafc; padding: 14px 18px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 12px 0 20px 0;">
+            <strong>Want to be listed here?</strong><br>
+            Submit your application at <a href="https://blackbook.cuttingedgetn.com" target="_blank"><strong>blackbook.cuttingedgetn.com</strong></a><br>
+            <span style="color: #64748b; font-size: 0.95em;">English and Spanish applications are welcome. / Se aceptan solicitudes en inglés y español.</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     # Load approved subcontractors from Supabase
     @st.cache_data(ttl=60)
     def load_approved_subs():
